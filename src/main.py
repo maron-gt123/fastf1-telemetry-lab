@@ -46,28 +46,31 @@ def save_laps(df, season, gp, session):
         cursor.execute("""
             INSERT INTO lap_times (
                 season, gp_name, session, driver, lap_number,
-                lap_time, sector1, sector2, sector3, speed_trap
+                lap_time, sector1, sector2, sector3, speed_trap,position
             )
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE
                 lap_time=VALUES(lap_time),
                 sector1=VALUES(sector1),
                 sector2=VALUES(sector2),
                 sector3=VALUES(sector3),
-                speed_trap=VALUES(speed_trap)
+                speed_trap=VALUES(speed_trap),
+                position=VALUES(position)
+
         """, (
             season,
             gp,
             session,
             row['Driver'],
-            int(row['LapNumber']),
+            int(row['LapNumber']) if pd.notnull(row['LapNumber']) else None
 
             to_sec(row['LapTime']),
             to_sec(row['Sector1Time']),
             to_sec(row['Sector2Time']),
             to_sec(row['Sector3Time']),
 
-            row['SpeedST'] if pd.notnull(row['SpeedST']) else None
+            row['SpeedST'] if pd.notnull(row['SpeedST']) else None,
+            int(row['Position']) if pd.notnull(row['Position']) else None
         ))
 
     conn.commit()
@@ -90,7 +93,8 @@ def fetch_session(season, gp, session_code):
         'Sector1Time',
         'Sector2Time',
         'Sector3Time',
-        'SpeedST'
+        'SpeedST',
+        'Position'
     ]].copy()
 
     save_laps(df, season, gp, session_code)
